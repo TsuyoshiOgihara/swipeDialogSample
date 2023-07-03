@@ -23,10 +23,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.swipedialogsample.ui.theme.SwipeDialogSampleTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,7 +77,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SwipeDialog(closeDialog: () -> Unit) {
-    var buttonTapScrollToPage by remember { mutableStateOf(false) }
+    val composableScope = rememberCoroutineScope()
     var scrollToPageInt by remember { mutableStateOf(0) }
     val pageCount = 6
 
@@ -118,19 +119,15 @@ fun SwipeDialog(closeDialog: () -> Unit) {
                                         if (page == pageCount - 1) {
                                             closeDialog()
                                         } else {
-                                            scrollToPageInt = page + 1
-                                            buttonTapScrollToPage = true
+                                            scrollToPageInt = pagerState.currentPage + 1
+                                            composableScope.launch {
+                                                pagerState.animateScrollToPage(scrollToPageInt)
+                                            }
                                         }
                                     }
                                 ) {
                                     Text(text = "Button $page")
                                 }
-                            }
-                        }
-                        LaunchedEffect(buttonTapScrollToPage) {
-                            if (buttonTapScrollToPage) {
-                                pagerState.animateScrollToPage(scrollToPageInt)
-                                buttonTapScrollToPage = false
                             }
                         }
                     }
